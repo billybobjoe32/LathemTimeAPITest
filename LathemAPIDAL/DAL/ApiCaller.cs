@@ -43,7 +43,7 @@ namespace LathemAPIDAL.DAL
                 }
                 catch
                 {
-                    throw new ApplicationException("Failed to deserialize object data.");
+                    throw new ApplicationException("Failed to deserialize employee data.");
                 }
             }
             else
@@ -79,7 +79,7 @@ namespace LathemAPIDAL.DAL
                 }
                 catch
                 {
-                    throw new ApplicationException("Failed to deserialize object data.");
+                    throw new ApplicationException("Failed to deserialize punch data.");
                 }
             }
             else
@@ -103,9 +103,15 @@ namespace LathemAPIDAL.DAL
                 // for some reason the string is coming back with backslashes and additional quotes
                 data = data.Replace("\\", "");
                 data = data.Substring(1, data.Length - 2);
-
-                VersionResponse versionResponse = (VersionResponse)JsonSerializer.Deserialize(data, typeof(VersionResponse));
-                return versionResponse;
+                try
+                {
+                    VersionResponse versionResponse = (VersionResponse)JsonSerializer.Deserialize(data, typeof(VersionResponse));
+                    return versionResponse;
+                }
+                catch
+                {
+                    throw new ApplicationException("Failed to deserialize version data.");
+                }
             }
             else
             {

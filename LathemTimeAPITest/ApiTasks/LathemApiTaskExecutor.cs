@@ -45,7 +45,7 @@ namespace LathemTimeAPITest.ApiTasks
         {
             if(employees.Count == 0)
             {
-                Console.WriteLine("No employees to punch in");
+                Console.WriteLine("No employees to send punch for");
             }
             Random r = new Random();
             int employeeIndex = r.Next(0, employees.Count);

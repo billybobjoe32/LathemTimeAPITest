@@ -18,7 +18,7 @@ namespace Database
 
             if(list.Any(e => e.EmployeeId == employee.EmployeeId))
             {
-                throw new Exception("Cannot create employee");
+                throw new Exception("Cannot create employee in DB");
             }
             else
             {
@@ -33,7 +33,7 @@ namespace Database
 
             if (!list.Any(e => e.EmployeeId == employee.EmployeeId))
             {
-                throw new Exception("Cannot delete employee");
+                throw new Exception("Cannot delete employee in DB");
             }
             else
             {
@@ -78,7 +78,7 @@ namespace Database
             Employee currentEmployee = list.FirstOrDefault(e => e.EmployeeId == employee.EmployeeId);
             if(currentEmployee == null)
             {
-                throw new Exception("No employee found");
+                throw new Exception("No employee found, cannot update employee in DB");
             }
             else
             {
