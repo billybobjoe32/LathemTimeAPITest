@@ -1,11 +1,12 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using Database;
 using LathemTimeAPITest.ApiTasks;
 using System.Configuration;
 
 Console.WriteLine("Welcome to the Lathem Api Simulator!");
 Console.WriteLine();
 int taskTypeInt = 1;
-LathemApiTaskExecutor apiTaskExecutor = new LathemApiTaskExecutor();
+LathemApiTaskExecutor apiTaskExecutor = new LathemApiTaskExecutor(new JSONEmployeeDB());
 apiTaskExecutor.InitializeEmployees();
 Task task = null;
 while (true)

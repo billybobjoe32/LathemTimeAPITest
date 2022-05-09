@@ -2,40 +2,26 @@
 using Newtonsoft.Json;
 using System.Configuration;
 using LathemAPIDAL.Models;
+using Database;
 
 namespace LathemTimeAPITest.ApiTasks
 {
     public class LathemApiTaskExecutor
     {
         private ApiCaller LathemApiCaller = new ApiCaller();
-        private string fileName = ConfigurationManager.AppSettings["EmployeeDataFileName"] ?? String.Empty;
-        private List<Employee> employees;
 
-        public LathemApiTaskExecutor()
+        private List<Employee> employees;
+        private IEmployeeDB db;
+
+        public LathemApiTaskExecutor(IEmployeeDB _db)
         {
             employees = new List<Employee>();
+            db = _db;
         }
 
         public void InitializeEmployees()
         {
-            if (!String.IsNullOrEmpty(fileName))
-            {
-                if (File.Exists(fileName))
-                {
-                    string[] employeeData = File.ReadAllLines(fileName);
-                    employees = JsonConvert.DeserializeObject<List<Employee>>(employeeData[0]);
-                    if (employees == null)
-                    {
-                        employees = new List<Employee>();
-                    }
-                }
-                else
-                {
-                    employees = new List<Employee>();
-                    string fileStorageString = JsonConvert.SerializeObject(employees);
-                    File.WriteAllText(fileName, fileStorageString);
-                }
-            }
+            employees = db.GetAll();
         }
 
         public async Task DownloadUpdateReportEmployees()
@@ -46,22 +32,11 @@ namespace LathemTimeAPITest.ApiTasks
                 Console.WriteLine("Failed to retrieve employees.");
             }
             string returnValue = String.Empty;
-            if (String.IsNullOrEmpty(fileName))
+            CompareAndUpdate(newEmployees);
+            returnValue = "Id\tFirstName\tLastName\r\n";
+            foreach (Employee employee in employees)
             {
-                Console.WriteLine("No file name specified in the configuration, failed to write data.");
-            }
-            else
-            {
-                if (CompareAndUpdate(newEmployees))
-                {
-                    string fileStorageString = JsonConvert.SerializeObject(employees);
-                    File.WriteAllText(fileName, fileStorageString);
-                }
-                returnValue = "Id\tFirstName\tLastName\r\n";
-                foreach (Employee employee in employees)
-                {
-                    returnValue += $"{employee.EmployeeId}\t{employee.FirstName}\t{employee.LastName}\r\n";
-                }
+                returnValue += $"{employee.EmployeeId}\t{employee.FirstName}\t{employee.LastName}\r\n";
             }
             Console.WriteLine(returnValue);
         }
@@ -87,51 +62,43 @@ namespace LathemTimeAPITest.ApiTasks
             Console.WriteLine();
         }
 
-        private bool CompareAndUpdate(List<Employee> newEmployees)
+        private void CompareAndUpdate(List<Employee> newEmployees)
         {
-            bool deletedEmployees = FindDeletedEmployeesAndRemove(newEmployees);
-            bool addedEmployees = FindNewEmployeesAndAdd(newEmployees);
-            bool updatedEmployees = FindExistingEmployeesAndUpdate(newEmployees);
-            return deletedEmployees || addedEmployees || updatedEmployees;
-        }
-
-        private bool FindDeletedEmployeesAndRemove(List<Employee> newEmployees)
-        {
-            List<Employee> deletedEmployees = employees.Where(e1 => newEmployees.All(e2 => e1.EmployeeId != e2.EmployeeId)).ToList();
-            foreach (Employee employee in deletedEmployees)
+            bool deletedEmployees = false;
+            bool updatedEmployees = false;
+            bool createdEmployees = false;
+            List<Employee> currentDeletedEmployees = employees.Where(e1 => newEmployees.All(e2 => e1.EmployeeId != e2.EmployeeId)).ToList();
+            foreach (Employee employee in currentDeletedEmployees)
             {
-                employees.Remove(employee);
+                db.Delete(employee);
+                deletedEmployees = true;
             }
-            return deletedEmployees.Count > 0;
-        }
-
-        private bool FindNewEmployeesAndAdd(List<Employee> newEmployees)
-        {
-            List<Employee> createdEmployees = newEmployees.Where(e1 => employees.All(e2 => e1.EmployeeId != e2.EmployeeId)).ToList();
-            foreach (Employee employee in createdEmployees)
+            foreach(Employee newEmployee in newEmployees)
             {
-                employees.Add(employee);
-            }
-            return createdEmployees.Count > 0;
-        }
-
-        private bool FindExistingEmployeesAndUpdate(List<Employee> newEmployees)
-        {
-            bool foundDifference = false;
-            foreach(Employee employee in newEmployees)
-            {
-                Employee existingEmployee = employees.FirstOrDefault(ee => ee.EmployeeId == employee.EmployeeId);
-                if(existingEmployee != null)
+                bool foundEmployee = false;
+                foreach (Employee currentEmployee in employees)
                 {
-                    if (!employee.Equals(existingEmployee))
+                    if(newEmployee.EmployeeId == currentEmployee.EmployeeId)
                     {
-                        existingEmployee.FirstName = employee.FirstName;
-                        existingEmployee.LastName = employee.LastName;
-                        foundDifference = true;
+                        foundEmployee = true;
+                        if (!newEmployee.Equals(currentEmployee))
+                        {
+                            db.Update(newEmployee);
+                            updatedEmployees = true;
+                        }
                     }
                 }
+                if (!foundEmployee)
+                {
+                    db.Create(newEmployee);
+                    createdEmployees = true;
+                }
             }
-            return foundDifference;
+            // Get latest employees if any updating occurred
+            if (deletedEmployees || updatedEmployees || createdEmployees)
+            {
+                employees = db.GetAll();
+            }
         }
     }
 }
