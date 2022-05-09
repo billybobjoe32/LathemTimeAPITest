@@ -1,7 +1,7 @@
 ﻿using LathemAPIDAL.Models;
 using System.Configuration;
 using System.Net.Http.Headers;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace LathemAPIDAL.DAL
 {
@@ -38,7 +38,7 @@ namespace LathemAPIDAL.DAL
 
                 try
                 {
-                    List<Employee> employees = (List<Employee>)JsonSerializer.Deserialize(data, typeof(List<Employee>));
+                    List<Employee> employees = JsonConvert.DeserializeObject<List<Employee>>(data);
                     return employees;
                 }
                 catch
@@ -59,7 +59,7 @@ namespace LathemAPIDAL.DAL
             client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue(CONTENT_TYPE));
 
-            string punchJson = JsonSerializer.Serialize<Punch>(punch);
+            string punchJson = JsonConvert.SerializeObject(punch);
 
             HttpContent content = new StringContent(punchJson);
 
@@ -74,7 +74,7 @@ namespace LathemAPIDAL.DAL
 
                 try
                 {
-                    PunchResponse punchResponse = (PunchResponse)JsonSerializer.Deserialize(data, typeof(PunchResponse));
+                    PunchResponse punchResponse = JsonConvert.DeserializeObject<PunchResponse>(data);
                     return punchResponse;
                 }
                 catch
@@ -105,7 +105,7 @@ namespace LathemAPIDAL.DAL
                 data = data.Substring(1, data.Length - 2);
                 try
                 {
-                    VersionResponse versionResponse = (VersionResponse)JsonSerializer.Deserialize(data, typeof(VersionResponse));
+                    VersionResponse versionResponse = JsonConvert.DeserializeObject<VersionResponse>(data);
                     return versionResponse;
                 }
                 catch
