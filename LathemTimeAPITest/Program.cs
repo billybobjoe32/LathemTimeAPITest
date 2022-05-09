@@ -13,7 +13,14 @@ while (true)
 {
     if(task != null)
     {
-        await task;
+        try
+        {
+            await task;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message.ToString());
+        }
         task = null;
     }
     DateTime currentTime = DateTime.Now;
