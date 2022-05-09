@@ -31,10 +31,11 @@ namespace LathemAPIDAL.DAL
             client.Dispose();
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response body.
                 var data = response.Content.ReadAsStringAsync().Result;
+                // for some reason the string is coming back with backslashes and additional quotes
                 data = data.Replace("\\", "");
                 data = data.Substring(1, data.Length - 2);
+
                 try
                 {
                     List<Employee> employees = (List<Employee>)JsonSerializer.Deserialize(data, typeof(List<Employee>));
@@ -66,10 +67,11 @@ namespace LathemAPIDAL.DAL
             client.Dispose();
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response body.
                 var data = response.Content.ReadAsStringAsync().Result;
+                // for some reason the string is coming back with backslashes and additional quotes
                 data = data.Replace("\\", "");
                 data = data.Substring(1, data.Length - 2);
+
                 try
                 {
                     PunchResponse punchResponse = (PunchResponse)JsonSerializer.Deserialize(data, typeof(PunchResponse));
@@ -97,10 +99,11 @@ namespace LathemAPIDAL.DAL
             client.Dispose();
             if (response.IsSuccessStatusCode)
             {
-                // Parse the response body.
                 var data = await response.Content.ReadAsStringAsync();
+                // for some reason the string is coming back with backslashes and additional quotes
                 data = data.Replace("\\", "");
                 data = data.Substring(1, data.Length - 2);
+
                 VersionResponse versionResponse = (VersionResponse)JsonSerializer.Deserialize(data, typeof(VersionResponse));
                 return versionResponse;
             }
